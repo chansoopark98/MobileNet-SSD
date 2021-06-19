@@ -1,5 +1,5 @@
 # from tensorflow.keras.applications.imagenet_utils import preprocess_input
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as preprocess_input_mobile
 from utils.augmentations import *
 
 AUTO = tf.data.experimental.AUTOTUNE
@@ -41,11 +41,7 @@ def prepare_input(sample, convert_to_normal=True):
 
         # bbox = tf.stack([bbox[:,1], bbox[:,0], bbox[:,3], bbox[:,2]], axis=1)
 
-    # filter_nan = lambda x: not tf.reduce_any(tf.math.is_nan(img)) and not tf.math.is_nan(img)
-    #
-    # train_data = train_data.filter(filter_nan)
-    # img = preprocess_input(img, mode='torch')
-    img = preprocess_input(img)
+    img = preprocess_input_mobile(img,)
 
     # img = tf.cast(img, tf.float32) # 형변환
 
@@ -62,7 +58,7 @@ def prepare_cocoEval_input(sample):
     img_id = sample['image/id']
 
 
-    img = preprocess_input(img, mode='torch')
+    img = preprocess_input_mobile(img, mode='torch')
     img = tf.image.resize(img, [512, 512])
     # return (img, img_shape , img_id, cat_id)
     return (img, img_id)
@@ -130,7 +126,7 @@ def prepare_dataset(dataset, image_size, batch_size, target_transform, classes, 
 def prepare_for_prediction(file_path):
     img = tf.io.read_file(file_path)
     img = decode_img(img, [512, 512])
-    img = preprocess_input(img, mode='torch')
+    img = preprocess_input_mobile(img)
 
     return img
     

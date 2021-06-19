@@ -17,7 +17,7 @@ mixed_precision.set_policy(policy)
 parser = argparse.ArgumentParser()
 parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=1)
 parser.add_argument("--epoch",          type=int,   help="에폭 설정", default=200)
-parser.add_argument("--lr",             type=float, help="Learning rate 설정", default=0.005)
+parser.add_argument("--lr",             type=float, help="Learning rate 설정", default=0.001)
 parser.add_argument("--weight_decay",   type=float, help="Weight Decay 설정", default=0.0005)
 parser.add_argument("--model_name",     type=str,   help="저장될 모델 이름",
                     default=str(time.strftime('%m%d', time.localtime(time.time()))))
@@ -74,8 +74,6 @@ testCallBack = Scalar_LR('test', TENSORBOARD_DIR)
 tensorboard = tf.keras.callbacks.TensorBoard(log_dir=TENSORBOARD_DIR, write_graph=True, write_images=True)
 
 
-
-
 polyDecay = tf.keras.optimizers.schedules.PolynomialDecay(initial_learning_rate=base_lr,
                                                           decay_steps=200,
                                                           end_learning_rate=0.0001, power=0.5)
@@ -87,24 +85,11 @@ optimizer = mixed_precision.LossScaleOptimizer(optimizer, loss_scale='dynamic') 
 callback = [checkpoint, reduce_lr , lr_scheduler, testCallBack, tensorboard]
 
 
+mirrored_strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+print("Number of devices: {}".format(mirrored_strategy.num_replicas_in_sync))
 
-# load_weight = False
-# if load_weight:
-#     weight_name = '0421'
-#     model.load_weights(CHECKPOINT_DIR + weight_name + '.h5')
-
-
-
-
-with tf.device('/device:GPU:0'):
+with mirrored_strategy.scope(): # if use single gpu > with tf.device('/device:GPU:0'):
     model = model_build(TRAIN_MODE, MODEL_NAME, image_size=IMAGE_SIZE, backbone_trainable=True)
-
-    # if USE_WEIGHT_DECAY:
-    #     regularizer = tf.keras.regularizers.l2(WEIGHT_DECAY / 2)
-    #     for layer in model.layers:
-    #         for attr in ['kernel_regularizer', 'bias_regularizer']:
-    #             if hasattr(layer, attr) and layer.trainable:
-    #                 setattr(layer, attr, regularizer)
 
     model.compile(
         optimizer=optimizer,

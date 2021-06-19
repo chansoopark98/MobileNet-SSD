@@ -10,7 +10,7 @@ def create_vgg16(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], traina
 
 def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[512, 512], backbone_trainable=True):
     base = create_vgg16(base_model_name, pretrained, IMAGE_SIZE, trainable=backbone_trainable)
-    
+
     x2 = base.get_layer('block_6_expand_relu').output # 38x38 @ 192
     x3 = base.get_layer('block_13_expand_relu').output # 19x19 @ 576
     x4 = base.get_layer('block_16_project_BN').output # 10x10 @ 320
