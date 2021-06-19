@@ -11,24 +11,24 @@ from tensorflow.keras import initializers
 import tensorflow as tf
 
 # l2 normalize
-class Normalize(Layer):
-    def __init__(self, scale=20, **kwargs):
-        self.scale = scale
-        super(Normalize, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        self.gamma = self.add_weight(name=self.name+'_gamma', 
-                                     shape=(input_shape[-1],),
-                                     initializer=Constant(self.scale), 
-                                     trainable=True)
-        super(Normalize, self).build(input_shape)
-        
-    def call(self, x, mask=None):
-        return self.gamma * K.l2_normalize(x, axis=-1)
-
-    def get_config(self):
-        config = super().get_config().copy()
-        return config
+# class Normalize(Layer):
+#     def __init__(self, scale=20, **kwargs):
+#         self.scale = scale
+#         super(Normalize, self).__init__(**kwargs)
+#
+#     def build(self, input_shape):
+#         self.gamma = self.add_weight(name=self.name+'_gamma',
+#                                      shape=(input_shape[-1],),
+#                                      initializer=Constant(self.scale),
+#                                      trainable=True)
+#         super(Normalize, self).build(input_shape)
+#
+#     def call(self, x, mask=None):
+#         return self.gamma * K.l2_normalize(x, axis=-1)
+#
+#     def get_config(self):
+#         config = super().get_config().copy()
+#         return config
 
 # CLASSIFIER BUILD!
 def create_classifier(source_layers, num_priors, normalizations, num_classes=21, classifier_times=3):
@@ -47,8 +47,8 @@ def create_classifier(source_layers, num_priors, normalizations, num_classes=21,
         name = x.name.split(':')[0] # name만 추출 (ex: block3b_add)
 
         # <<< reduce norm
-        if normalizations is not None and normalizations[i] > 0:
-           x = Normalize(normalizations[i], name=name + '_norm')(x)
+        # if normalizations is not None and normalizations[i] > 0:
+        #    x = Normalize(normalizations[i], name=name + '_norm')(x)
            #print('norm_feature : '+x.name)
 
         # x = activation_5/Relu:0, shape=(Batch, 1, 1, 256)
@@ -58,38 +58,17 @@ def create_classifier(source_layers, num_priors, normalizations, num_classes=21,
         # print("num_priors[i] * num_classes",num_priors[i] * num_classes) # 126
 
         ## original ----
-        # x1 = Conv2D(num_priors[i] * num_classes, 3, padding='same', kernel_regularizer=l2(5e-4) ,name= name + '_mbox_conf')(x)
+        x1 = Conv2D(num_priors[i] * num_classes, 3, padding='same', name= name + '_mbox_conf')(x)
         # x1 = SeparableConv2D(num_priors[i] * num_classes, 3, padding='same', use_bias=False, kernel_regularizer=l2(5e-4), name= name + '_mbox_conf')(x)
-        x1 = SeparableConv2D(num_priors[i] * num_classes, 3, padding='same',
-                             depthwise_initializer=initializers.VarianceScaling(),
-                             pointwise_initializer=initializers.VarianceScaling(),
-                             name= name + '_mbox_conf_1')(x)
-
-        for cls_times in range(classifier_times-1):
-            #print('cls_times', cls_times)
-            x1 = SeparableConv2D(num_priors[i] * num_classes, 3, padding='same',
-                                 depthwise_initializer=initializers.VarianceScaling(),
-                                 pointwise_initializer=initializers.VarianceScaling(),
-                                 name= name + '_mbox_conf_'+str(cls_times+2))(x1)
-
         x1 = Flatten(name=name + '_mbox_conf_flat')(x1)
 
 
         # x1 = activation_b5_mbox_conf_flat/Reshape:0 , shape=(Batch , 84)
         mbox_conf.append(x1)
 
-        # x2 = Conv2D(num_priors[i] * 4, 3, padding='same', kernel_regularizer=l2(5e-4) ,name= name + '_mbox_loc')(x)
+        x2 = Conv2D(num_priors[i] * 4, 3, padding='same', name= name + '_mbox_loc')(x)
         # x2 = SeparableConv2D(num_priors[i] * 4, 3, padding='same', use_bias=False, kernel_regularizer=l2(5e-4),name= name + '_mbox_loc')(x)
-        x2 = SeparableConv2D(num_priors[i] * 4, 3, padding='same',
-                             depthwise_initializer=initializers.VarianceScaling(),
-                             pointwise_initializer=initializers.VarianceScaling(),
-                             name= name + '_mbox_loc_1')(x)
 
-        for loc_times in range(classifier_times - 1):
-            x2 = SeparableConv2D(num_priors[i] * 4, 3, padding='same',
-                                 depthwise_initializer=initializers.VarianceScaling(),
-                                 pointwise_initializer=initializers.VarianceScaling(),
-                                 name= name + '_mbox_loc_'+str(loc_times+2))(x2)
 
         x2 = Flatten(name=name + '_mbox_loc_flat')(x2)
         # x2 = activation_b5_mbox_loc_flat/Reshape:0 , shape=(Batch , 16)

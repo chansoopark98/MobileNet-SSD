@@ -96,7 +96,8 @@ callback = [checkpoint, reduce_lr , lr_scheduler, testCallBack, tensorboard]
 
 with tf.device('/device:GPU:0'):
     model = model_build(TRAIN_MODE, MODEL_NAME, image_size=IMAGE_SIZE, backbone_trainable=True)
-
+    weight_name = 'voc_0618'
+    model.load_weights(CHECKPOINT_DIR + weight_name + '.h5')
     # if USE_WEIGHT_DECAY:
     #     regularizer = tf.keras.regularizers.l2(WEIGHT_DECAY / 2)
     #     for layer in model.layers:
@@ -109,15 +110,11 @@ with tf.device('/device:GPU:0'):
         loss=loss.total_loss,
         metrics=[metrics.precision, metrics.recall, metrics.cross_entropy, metrics.localization]
     )
+    from tensorflow.keras.utils import plot_model
+    plot_model(model,'model.png', show_shapes=False, show_dtype=False,)
 
     model.summary()
 
-    history = model.fit(dataset_config.training_dataset,
-            validation_data=dataset_config.validation_dataset,
-            steps_per_epoch=steps_per_epoch,
-            validation_steps=validation_steps,
-            epochs=1,
-            callbacks=callback)
-
     model.save('./checkpoints/save_model.h5', True, True, 'h5')
+
 

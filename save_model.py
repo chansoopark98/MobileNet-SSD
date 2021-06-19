@@ -15,7 +15,7 @@ policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
 mixed_precision.set_policy(policy)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=32)
+parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=1)
 parser.add_argument("--epoch",          type=int,   help="에폭 설정", default=200)
 parser.add_argument("--lr",             type=float, help="Learning rate 설정", default=0.005)
 parser.add_argument("--weight_decay",   type=float, help="Weight Decay 설정", default=0.0005)
@@ -24,8 +24,8 @@ parser.add_argument("--model_name",     type=str,   help="저장될 모델 이�
 parser.add_argument("--dataset_dir",    type=str,   help="데이터셋 다운로드 디렉토리 설정", default='./datasets/')
 parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/')
 parser.add_argument("--tensorboard_dir",  type=str,   help="텐서보드 저장 경로", default='tensorboard')
-parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 설정", default='B0')
-parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 dataset 설정 coco or voc", default='voc')
+parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 설정", default='B1')
+parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 dataset 설정 coco or voc", default='coco')
 parser.add_argument("--use_weightDecay",  type=bool,  help="weightDecay 사용 유무", default=True)
 
 args = parser.parse_args()
@@ -91,18 +91,22 @@ callback = [checkpoint, reduce_lr , lr_scheduler, testCallBack, tensorboard]
 #     weight_name = '0421'
 #     model.load_weights(CHECKPOINT_DIR + weight_name + '.h5')
 
+mirrored_strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+print("Number of devices: {}".format(mirrored_strategy.num_replicas_in_sync))
 
 
-
-with tf.device('/device:GPU:0'):
+with mirrored_strategy.scope():
     model = model_build(TRAIN_MODE, MODEL_NAME, image_size=IMAGE_SIZE, backbone_trainable=True)
 
-    # if USE_WEIGHT_DECAY:
-    #     regularizer = tf.keras.regularizers.l2(WEIGHT_DECAY / 2)
-    #     for layer in model.layers:
-    #         for attr in ['kernel_regularizer', 'bias_regularizer']:
-    #             if hasattr(layer, attr) and layer.trainable:
-    #                 setattr(layer, attr, regularizer)
+    if USE_WEIGHT_DECAY:
+        regularizer = tf.keras.regularizers.l2(WEIGHT_DECAY / 2)
+        for layer in model.layers:
+            for attr in ['kernel_regularizer', 'bias_regularizer']:
+                if hasattr(layer, attr) and layer.trainable:
+                    setattr(layer, attr, regularizer)
+
+    weight_name = 'coco_0608'
+    model.load_weights(CHECKPOINT_DIR + weight_name + '.h5')
 
     model.compile(
         optimizer=optimizer,
@@ -110,14 +114,6 @@ with tf.device('/device:GPU:0'):
         metrics=[metrics.precision, metrics.recall, metrics.cross_entropy, metrics.localization]
     )
 
-    model.summary()
+    model.save('./checkpoints/save_model.h5',True, True,'h5')
 
-    history = model.fit(dataset_config.training_dataset,
-            validation_data=dataset_config.validation_dataset,
-            steps_per_epoch=steps_per_epoch,
-            validation_steps=validation_steps,
-            epochs=1,
-            callbacks=callback)
-
-    model.save('./checkpoints/save_model.h5', True, True, 'h5')
 
