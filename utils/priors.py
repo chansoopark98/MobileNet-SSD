@@ -47,21 +47,18 @@ def create_priors_boxes(specs: List[Spec], image_size, clamp=True):
                 h
             ])
 
-
-            # # 큰 bbox
-            # size = np.sqrt(spec.box_sizes.max * spec.box_sizes.min)
-            # h = w = size / image_size
-            # priors.append([
-            #     x_center,
-            #     y_center,
-            #     w,
-            #     h
-            # ])
-
+            # 큰 bbox
+            size = np.sqrt(spec.box_sizes.max * spec.box_sizes.min)
+            h = w = size / image_size
+            priors.append([
+                x_center,
+                y_center,
+                w,
+                h
+            ])
 
             # 작은 bbox 높이, 너비 비율 변경
-            #size = spec.box_sizes.min 기존
-            size = np.sqrt(spec.box_sizes.max * spec.box_sizes.min)
+            size = spec.box_sizes.min
             h = w = size / image_size
             if spec.aspect_ratios :
                 for ratio in spec.aspect_ratios:
@@ -79,13 +76,11 @@ def create_priors_boxes(specs: List[Spec], image_size, clamp=True):
                         h * ratio
                     ])
 
-
-
-
     # priors > shape(Batch, 13792)
     # 2차원 배열이고 각 배열마다 4개씩 존재(x_center, y_center, w, h) * 13792
     priors = np.array(priors, dtype=np.float32)
 
+    print(priors)
     if clamp:
         np.clip(priors, 0.0, 1.0, out=priors)
     return tf.convert_to_tensor(priors)

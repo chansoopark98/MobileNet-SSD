@@ -15,7 +15,7 @@ policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
 mixed_precision.set_policy(policy)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=32)
+parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=1)
 parser.add_argument("--epoch",          type=int,   help="에폭 설정", default=200)
 parser.add_argument("--lr",             type=float, help="Learning rate 설정", default=0.005)
 parser.add_argument("--weight_decay",   type=float, help="Weight Decay 설정", default=0.0005)
@@ -28,6 +28,8 @@ parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 �
 parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 dataset 설정 coco or voc", default='voc')
 parser.add_argument("--use_weightDecay",  type=bool,  help="weightDecay 사용 유무", default=True)
 
+MODEL_INPUT_SIZE = 300
+
 args = parser.parse_args()
 WEIGHT_DECAY = args.weight_decay
 BATCH_SIZE = args.batch_size
@@ -39,13 +41,13 @@ CHECKPOINT_DIR = args.checkpoint_dir
 TENSORBOARD_DIR = args.tensorboard_dir
 MODEL_NAME = args.backbone_model
 TRAIN_MODE = args.train_dataset
-IMAGE_SIZE = [MODEL_INPUT_SIZE[MODEL_NAME], MODEL_INPUT_SIZE[MODEL_NAME]]
+IMAGE_SIZE = [MODEL_INPUT_SIZE, MODEL_INPUT_SIZE]
 USE_WEIGHT_DECAY = args.use_weightDecay
 
 os.makedirs(DATASET_DIR, exist_ok=True)
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-specs = set_priorBox(MODEL_NAME)
+specs = set_priorBox()
 
 priors = create_priors_boxes(specs, IMAGE_SIZE[0])
 TARGET_TRANSFORM = MatchingPriors(priors, center_variance, size_variance, iou_threshold)
