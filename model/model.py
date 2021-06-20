@@ -1,14 +1,17 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Activation
+from tensorflow.keras.layers import Conv2D, Activation, BatchNormalization, ReLU
 from tensorflow.keras.layers import Concatenate, Flatten, Reshape
 from tensorflow.keras.applications import mobilenet_v2
+
+MOMENTUM = 0.999
+EPSILON = 1e-3
 
 def create_vgg16(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], trainable=True):
     weights = "imagenet"
     base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
     return base
 
-def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[512, 512], backbone_trainable=True):
+def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], backbone_trainable=True):
     base = create_vgg16(base_model_name, pretrained, IMAGE_SIZE, trainable=backbone_trainable)
 
     x2 = base.get_layer('block_6_expand_relu').output # 38x38 @ 192
@@ -16,19 +19,26 @@ def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[512, 512], b
     x4 = base.get_layer('block_16_project_BN').output # 10x10 @ 320
 
     x5 = Conv2D(128, kernel_size=3, strides=1, padding='same', use_bias=True)(x4)
-    x5 = Activation('relu')(x5)
+    x5 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x5)
+    x5 = ReLU(6.)(x5)
     x5 = Conv2D(256, kernel_size=3, strides=2, padding='same', use_bias=True)(x5)
-    x5 = Activation('relu')(x5)
+    x5 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x5)
+    x5 = ReLU(6.)(x5)
 
     x6 = Conv2D(128, kernel_size=3, strides=1, padding='same', use_bias=True)(x5)
-    x6 = Activation('relu')(x6)
+    x6 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x6)
+    x6 = ReLU(6.)(x6)
     x6 = Conv2D(256, kernel_size=3, strides=1, padding='valid', use_bias=True)(x6)
-    x6 = Activation('relu')(x6)
+    x6 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x6)
+    x6 = ReLU(6.)(x6)
 
     x7 = Conv2D(128, kernel_size=3, strides=1, padding='same', use_bias=True)(x6)
-    x7 = Activation('relu')(x7)
+    x7 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x7)
+    x7 = ReLU(6.)(x7)
     x7 = Conv2D(256, kernel_size=3, strides=1, padding='valid', use_bias=True)(x7)
-    x7 = Activation('relu')(x7)
+    x7 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x7)
+    x7 = ReLU(6.)(x7)
+
 
     features = [x2, x3, x4, x5, x6, x7]
 

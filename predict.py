@@ -28,7 +28,7 @@ parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 da
 args = parser.parse_args()
 BATCH_SIZE = args.batch_size
 MODEL_NAME = args.backbone_model
-IMAGE_SIZE = [MODEL_INPUT_SIZE[MODEL_NAME], MODEL_INPUT_SIZE[MODEL_NAME]]
+IMAGE_SIZE = [300, 300]
 DATASET_DIR = args.dataset_dir
 checkpoint_filepath = args.checkpoint_dir
 TRAIN_MODE = args.train_dataset
@@ -47,7 +47,7 @@ else:
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-specs = set_priorBox(MODEL_NAME)
+specs = set_priorBox()
 
 
 priors = create_priors_boxes(specs, IMAGE_SIZE[0])

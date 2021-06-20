@@ -4,6 +4,9 @@ iou_threshold = 0.5 # 0.5
 center_variance = 0.1 # 0.1
 size_variance = 0.2 # 0.2
 
+# tensorflowjs_converter --input_format=keras ./checkpoints/save_model.h5 ./checkpoints/tfjs_model
+
+# http://127.168.0.1:3000/predict-with-tfjs.html
 class TrainHyperParams:
     def __init__(self):
         self.optimizer_name = 'sgd'

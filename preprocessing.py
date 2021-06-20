@@ -1,7 +1,7 @@
-# from tensorflow.keras.applications.imagenet_utils import preprocess_input
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as preprocess_input_mobile
+from tensorflow.keras.applications.imagenet_utils import preprocess_input
+# from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as preprocess_input_mobile
 from utils.augmentations import *
-
+import sys
 AUTO = tf.data.experimental.AUTOTUNE
 
 
@@ -40,8 +40,9 @@ def prepare_input(sample, convert_to_normal=True):
         bbox = tf.stack([x_min, y_min, x_max, y_max], axis=1)
 
         # bbox = tf.stack([bbox[:,1], bbox[:,0], bbox[:,3], bbox[:,2]], axis=1)
+    img = preprocess_input(img, mode='torch')
 
-    img = preprocess_input_mobile(img,)
+
 
     # img = tf.cast(img, tf.float32) # 형변환
 
@@ -58,7 +59,7 @@ def prepare_cocoEval_input(sample):
     img_id = sample['image/id']
 
 
-    img = preprocess_input_mobile(img, mode='torch')
+    img = preprocess_input(img, mode='torch')
     img = tf.image.resize(img, [512, 512])
     # return (img, img_shape , img_id, cat_id)
     return (img, img_id)
@@ -125,12 +126,12 @@ def prepare_dataset(dataset, image_size, batch_size, target_transform, classes, 
 # predict 할 때
 def prepare_for_prediction(file_path):
     img = tf.io.read_file(file_path)
-    img = decode_img(img, [512, 512])
-    img = preprocess_input_mobile(img)
+    img = decode_img(img, [300, 300])
+    img = preprocess_input(img)
 
     return img
     
-def decode_img(img,  image_size=[384, 384]):
+def decode_img(img,  image_size=[300, 300]):
     # 텐서 변환
     img = tf.image.decode_jpeg(img, channels=3)
     # 이미지 리사이징

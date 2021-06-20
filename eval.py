@@ -28,9 +28,9 @@ parser = argparse.ArgumentParser()
 
 
 parser.add_argument("--dataset_dir",    type=str,   help="데이터셋 다운로드 디렉토리 설정", default='./datasets/')
-parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=32)
+parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=128)
 # parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/0410_81.9%_b1_/0410.h5')
-parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/voc_0618.h5')
+parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/voc_0620.h5')
 parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 설정", default='B0')
 parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 dataset 설정 coco or voc", default='voc')
 parser.add_argument("--eval_testdev",  type=str,   help="COCO minival(val dataset) 평가", default=True)
@@ -44,11 +44,11 @@ CHECKPOINT_DIR = args.checkpoint_dir
 MODEL_NAME = args.backbone_model
 TRAIN_MODE = args.train_dataset
 CALC_FLOPS = args.calc_flops
-IMAGE_SIZE = [MODEL_INPUT_SIZE[MODEL_NAME], MODEL_INPUT_SIZE[MODEL_NAME]]
+IMAGE_SIZE = [300, 300]
 EVAL_TESTDEV = args.eval_testdev
 os.makedirs(DATASET_DIR, exist_ok=True)
 
-specs = set_priorBox(MODEL_NAME)
+specs = set_priorBox()
 priors = create_priors_boxes(specs, IMAGE_SIZE[0])
 target_transform = MatchingPriors(priors, center_variance, size_variance, iou_threshold)
 
@@ -235,5 +235,4 @@ else:
         w.writerow(["Class", "Average Precision"])
         for key, val in ap_dict.items():
             w.writerow([key, val])
-
 
