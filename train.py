@@ -89,7 +89,7 @@ mirrored_strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribut
 print("Number of devices: {}".format(mirrored_strategy.num_replicas_in_sync))
 
 with mirrored_strategy.scope(): # if use single gpu > with tf.device('/device:GPU:0'):
-    model = model_build(TRAIN_MODE, MODEL_NAME, image_size=IMAGE_SIZE, backbone_trainable=True)
+    model = model_build(TRAIN_MODE, MODEL_NAME, train=True, image_size=IMAGE_SIZE, backbone_trainable=True)
 
     model.compile(
         optimizer=optimizer,
