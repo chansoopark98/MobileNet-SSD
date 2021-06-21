@@ -31,11 +31,11 @@ class TrainHyperParams:
 
 def set_priorBox():
     return [
-        Spec(38, 8, BoxSizes(30, 60), [2]),
-        Spec(19, 16, BoxSizes(60, 111), [2, 3]),
-        Spec(10, 32, BoxSizes(111, 162), [2, 3]),
-        Spec(5, 64, BoxSizes(162, 213), [2, 3]),
-        Spec(3, 100, BoxSizes(213, 264), [2]),
+        Spec(38, 8, BoxSizes(9, 12), [2]),
+        Spec(19, 16, BoxSizes(23, 33), [2, 3]),
+        Spec(10, 32, BoxSizes(54, 108), [2, 3]),
+        Spec(5, 64, BoxSizes(113, 134), [2, 3]),
+        Spec(3, 100, BoxSizes(182, 226), [2]),
         Spec(1, 300, BoxSizes(264, 315), [2])
     ]
 
