@@ -7,7 +7,7 @@ from utils.model_post_processing import post_process
 from utils.model_evaluation import eval_detection_voc
 from tensorflow.keras.utils import plot_model
 from config import *
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+#from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tqdm import tqdm
 from pprint import pprint
 import csv
@@ -17,8 +17,8 @@ import os
 
 tf.keras.backend.clear_session()
 
-policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
-mixed_precision.set_policy(policy)
+# policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
+# mixed_precision.set_policy(policy)
 
 
 parser = argparse.ArgumentParser()

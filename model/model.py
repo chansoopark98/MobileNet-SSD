@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Activation, BatchNormalization, ReLU
 from tensorflow.keras.layers import Concatenate, Flatten, Reshape
-from tensorflow.keras.applications import mobilenet_v2
+from tensorflow.keras.applications import mobilenet_v2, vgg16, mobilenet
 from utils.model_post_processing import post_process, post_process_predict
 MOMENTUM = 0.999
 EPSILON = 1e-3
@@ -9,14 +9,19 @@ EPSILON = 1e-3
 def create_vgg16(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], trainable=True):
     weights = "imagenet"
     base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
+    base = vgg16.VGG16(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
     return base
 
 def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], backbone_trainable=True):
     base = create_vgg16(base_model_name, pretrained, IMAGE_SIZE, trainable=backbone_trainable)
+    # mobilenET V2
+    # x2 = base.get_layer('block_6_expand_relu').output # 38x38 @ 192
+    # x3 = base.get_layer('block_13_expand_relu').output # 19x19 @ 576
+    # x4 = base.get_layer('block_16_project_BN').output # 10x10 @ 320
 
-    x2 = base.get_layer('block_6_expand_relu').output # 38x38 @ 192
-    x3 = base.get_layer('block_13_expand_relu').output # 19x19 @ 576
-    x4 = base.get_layer('block_16_project_BN').output # 10x10 @ 320
+    # VGG16
+    x3 = base.get_layer('block4_conv3').output # 19x19 @ 576
+    x4 = base.get_layer('block5_conv3').output # 10x10 @ 320
 
     x5 = Conv2D(128, kernel_size=3, strides=1, padding='same', use_bias=True)(x4)
     x5 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x5)
@@ -39,8 +44,15 @@ def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], b
     x7 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x7)
     x7 = ReLU(6.)(x7)
 
+    x8 = Conv2D(128, kernel_size=3, strides=1, padding='same', use_bias=True)(x7)
+    x8 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x8)
+    x8 = ReLU(6.)(x8)
+    x8 = Conv2D(256, kernel_size=3, strides=1, padding='valid', use_bias=True)(x8)
+    x8 = BatchNormalization(momentum=MOMENTUM, epsilon=EPSILON)(x8)
+    x8 = ReLU(6.)(x8)
 
-    features = [x2, x3, x4, x5, x6, x7]
+
+    features = [x3, x4, x5, x6, x7, x8]
 
     mbox_conf = []
     mbox_loc = []

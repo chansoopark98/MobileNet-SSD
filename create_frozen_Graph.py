@@ -16,7 +16,7 @@ from calc_flops import get_flops
 # from pycocotools.coco import COCO
 # from pycocotools.cocoeval import COCOeval
 from config import *
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+#from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tqdm import tqdm
 from pprint import pprint
 import csv
@@ -25,9 +25,9 @@ import argparse
 import os
 
 tf.keras.backend.clear_session()
-
-policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
-mixed_precision.set_policy(policy)
+#
+# policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
+# mixed_precision.set_policy(policy)
 
 
 parser = argparse.ArgumentParser()

@@ -12,6 +12,7 @@ size_variance = 0.2 # 0.2
 
 tensorflowjs_converter --input_format=tf_frozen_model --output_node_names='tf_op_layer_GatherV2_5' ./checkpoints/graph_model/saved_model.pb ./checkpoints/tfjs_frozen
 tensorflowjs_converter --input_format=tf_frozen_model --output_node_names='Identity' --quantize_float16 ./checkpoints/new_tfjs_frozen/frozen_graph.pb ./checkpoints/test_frozen
+tensorflowjs_converter --input_format=tf_frozen_model --output_node_names='Identity' ./checkpoints/new_tfjs_frozen/frozen_graph.pb ./checkpoints/test_frozen
 
 """
 class TrainHyperParams:
