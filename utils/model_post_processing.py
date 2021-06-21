@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from collections import namedtuple
-from utils.misc import *
+from utils.graph_misc import *
 
 Predictions = namedtuple('Prediction', ('boxes', 'scores', 'labels'))
 

@@ -207,7 +207,6 @@ def coco_color_map(index):
     return label_defs[index]
 
 
-@tf.function
 def convert_locations_to_boxes(locations, priors, center_variance,
                                size_variance):
     """네트워크의 회귀 위치 결과를 (center_x, center_y, h, w) 형식의 box로 변환하는 과정
@@ -232,7 +231,6 @@ def convert_locations_to_boxes(locations, priors, center_variance,
     ], axis=tf.rank(locations) - 1)
 
 
-@tf.function
 def convert_boxes_to_locations(center_form_boxes, center_form_priors, center_variance, size_variance):
     if tf.rank(center_form_priors) + 1 == tf.rank(center_form_boxes):
         center_form_priors = tf.expand_dims(center_form_priors, 0)
@@ -244,8 +242,7 @@ def convert_boxes_to_locations(center_form_boxes, center_form_priors, center_var
 
 
 # experimental_relax_shapes=True인 경우 인스턴스 객체를 생성할 때 작은 graph를 생성할 수 있게 함 (XLA 타입으로 컴파일)
-# 참고 자료 : https://www.tensorflow.org/xla?hl=ko
-@tf.function(experimental_relax_shapes=True)
+
 def area_of(left_top, right_bottom):
     """bbox 좌표값 (좌상단, 우하단)으로 사각형 넓이 계산.
     Args:
@@ -258,7 +255,6 @@ def area_of(left_top, right_bottom):
     hw = tf.clip_by_value(right_bottom - left_top, 0.0, 10000)
     return hw[..., 0] * hw[..., 1]
 
-@tf.function(experimental_relax_shapes=True)
 def iou_of(boxes0, boxes1, eps=1e-5):
     """두 bbox간 iou 계산.
     Args:
@@ -276,7 +272,6 @@ def iou_of(boxes0, boxes1, eps=1e-5):
     area1 = area_of(boxes1[..., :2], boxes1[..., 2:])
     return overlap_area / (area0 + area1 - overlap_area + eps)
 
-@tf.function
 def center_form_to_corner_form(locations):
     output = tf.concat([locations[..., :2] - locations[..., 2:] / 2,
                         locations[..., :2] + locations[..., 2:] / 2], tf.rank(locations) - 1)
@@ -284,42 +279,9 @@ def center_form_to_corner_form(locations):
     return output
 
 
-@tf.function
 def corner_form_to_center_form(boxes):
     return tf.concat([
         (boxes[..., :2] + boxes[..., 2:]) / 2,
         boxes[..., 2:] - boxes[..., :2]
     ], tf.rank(boxes) - 1)
 
-# 작업중
-# def hard_nms(box_scores, iou_threshold, top_k=-1, candidate_size=200):
-#     """
-#     Args:
-#         box_scores (N, 5): 코너 형식의 box와 확률값
-#         iou_threshold: IoU 임계값
-#         top_k: 값 유지    If k <= 0, 모든 값 유지
-#         candidate_size: 가장 높은 점수를 가지는 후보 경계만 사용.
-#     Returns:
-#          picked: bbox index 리스트
-#     """
-#     scores = box_scores[:, 4]
-#     boxes = box_scores[:, :-2]
-#     picked = []
-#     indexes = np.argsort(scores)[::-1]
-#     indexes = indexes[:candidate_size]
-#
-#     while len(indexes) > 0:
-#         current = indexes[0]
-#         picked.append(current)
-#         if 0 < top_k == len(picked) or len(indexes) == 1:
-#             break
-#         current_box = boxes[current, :]
-#         indexes = indexes[1:]
-#         rest_boxes = boxes[indexes, :]
-#         iou = iou_of(
-#             rest_boxes,
-#             np.expand_dims(current_box, axis=0),
-#         ).numpy()
-#         indexes = indexes[iou <= iou_threshold]
-#
-#     return box_scores[picked, :]

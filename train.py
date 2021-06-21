@@ -1,5 +1,5 @@
 from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+# from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from callbacks import Scalar_LR
 from metrics import CreateMetrics
 from config import *
@@ -11,8 +11,8 @@ import time
 import os
 
 tf.keras.backend.clear_session()
-policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
-mixed_precision.set_policy(policy)
+# policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
+# mixed_precision.set_policy(policy)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=1)
@@ -80,7 +80,7 @@ polyDecay = tf.keras.optimizers.schedules.PolynomialDecay(initial_learning_rate=
 lr_scheduler = tf.keras.callbacks.LearningRateScheduler(polyDecay)
 
 optimizer = tf.keras.optimizers.SGD(learning_rate=base_lr, momentum=0.9)
-optimizer = mixed_precision.LossScaleOptimizer(optimizer, loss_scale='dynamic')  # tf2.4.1 이전
+# optimizer = mixed_precision.LossScaleOptimizer(optimizer, loss_scale='dynamic')  # tf2.4.1 이전
 
 callback = [checkpoint, reduce_lr , lr_scheduler, testCallBack, tensorboard]
 
