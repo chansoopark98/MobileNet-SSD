@@ -190,7 +190,18 @@ if TRAIN_MODE == 'coco':
 
 else:
     with tf.device('/device:GPU:0'):
-        model.save('./checkpoints/save_model.h5', True, True, 'h5')
+        # model.save('./checkpoints/save_model.h5', True, True, 'h5')
+        export_path = os.path.join('./checkpoints', str('graph_model'))
+
+        tf.keras.models.save_model(
+            model,
+            export_path,
+            overwrite=True,
+            include_optimizer=True,
+            save_format=None,
+            signatures=None,
+            options=None
+        )
         # test_difficults = []
         # use_07_metric = True
         # test_bboxes = []

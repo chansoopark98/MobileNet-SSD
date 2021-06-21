@@ -168,6 +168,10 @@ def post_process_predict(detections, target_transform, confidence_threshold=0.01
     # scores = selected_scores
     # boxes, labels = tf.gather(boxes, keep), tf.gather(labels, keep)
 
-    results.append(Predictions(boxes, scores, labels))
+    # results.append(Predictions(boxes, scores, labels))
+    # results = [boxes, scores, labels]
+    scores = tf.expand_dims(scores, axis=1)
+    labels = tf.expand_dims(labels, axis=1)
 
+    results = tf.keras.layers.Concatenate(axis=-1, name='final_outputs')([boxes, scores, labels])
     return results
