@@ -27,10 +27,11 @@ def batched_nms(boxes, scores, idxs, iou_threshold, top_k=100):
     # if tf.size(boxes) == 0:
     #     return tf.convert_to_tensor([], dtype=tf.int32)
 
-    max_coordinate = tf.reduce_max(boxes)
-    offsets = idxs * (max_coordinate + 1)
+    max_coordinate = tf.reduce_max(boxes, name='max_coordinate')
+    # offsets = idxs * (max_coordinate + 1)
+    offsets = tf.math.multiply(idxs, max_coordinate + 1, name='offset_multiply')
     boxes_for_nms = boxes + offsets[:, None]
-    keep = tf.image.non_max_suppression(boxes_for_nms, scores, top_k, iou_threshold) # 기존
+    keep = tf.image.non_max_suppression(boxes_for_nms, scores, top_k, iou_threshold, name='csnet_nms') # 기존
     # keep, selected_scores = tf.image.non_max_suppression_with_scores(boxes_for_nms, scores, top_k, iou_threshold, soft_nms_sigma=0.5) # 기존
     # soft nms일 경우 selected_socres 추가
 
@@ -151,27 +152,23 @@ def post_process_predict(detections, target_transform, confidence_threshold=0.01
     labels = labels[:, 1:]
 
     # 모든 클래스 예측을 별도의 인스턴스로 만들어 모든 것을 일괄 처리 과정
-    boxes = tf.reshape(boxes, [-1, 4])
-    scores = tf.reshape(scores, [-1])
-    labels = tf.reshape(labels, [-1])
+    boxes = tf.reshape(boxes, [-1, 4], name='reshape_boxes')
+    scores = tf.reshape(scores, [-1], name='reshape_scores')
+    labels = tf.reshape(labels, [-1], name='reshape_labels')
 
     # confidence  점수가 낮은 predict bbox 제거
-    low_scoring_mask = scores > confidence_threshold
-    boxes, scores, labels = tf.boolean_mask(boxes, low_scoring_mask), tf.boolean_mask(scores, low_scoring_mask), tf.boolean_mask(labels, low_scoring_mask)
+    # low_scoring_mask = scores > confidence_threshold
+    #
+    # boxes = tf.boolean_mask(boxes, low_scoring_mask, name='bool_mask_boxes')
+    # scores = tf.boolean_mask(scores, low_scoring_mask, name='bool_mask_scores')
+    # labels = tf.boolean_mask(labels, low_scoring_mask, name='bool_mask_labels')
 
-    keep  = batched_nms(boxes, scores, labels, iou_threshold, top_k)
+    # keep  = batched_nms(boxes, scores, labels, iou_threshold, top_k)
+    #
+    # boxes, scores, labels = tf.gather(boxes, keep), tf.gather(scores, keep), tf.gather(labels, keep)
 
-    boxes, scores, labels = tf.gather(boxes, keep), tf.gather(scores, keep), tf.gather(labels, keep)
-
-    # test soft-nms
-    # keep, selected_scores = batched_nms(boxes, scores, labels, iou_threshold, top_k)
-    # scores = selected_scores
-    # boxes, labels = tf.gather(boxes, keep), tf.gather(labels, keep)
-
-    # results.append(Predictions(boxes, scores, labels))
-    # results = [boxes, scores, labels]
-    scores = tf.expand_dims(scores, axis=1)
-    labels = tf.expand_dims(labels, axis=1)
+    scores = tf.expand_dims(scores, axis=1, name='expand_scores')
+    labels = tf.expand_dims(labels, axis=1, name='expand_labels')
 
     results = tf.keras.layers.Concatenate(axis=-1, name='final_outputs')([boxes, scores, labels])
     return results

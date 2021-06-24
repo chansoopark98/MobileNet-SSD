@@ -9,7 +9,6 @@ EPSILON = 1e-3
 def create_vgg16(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], trainable=True):
     weights = "imagenet"
     base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
-    base = vgg16.VGG16(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
     return base
 
 def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], backbone_trainable=True):
