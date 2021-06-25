@@ -187,64 +187,66 @@ if TRAIN_MODE == 'coco':
 
 else:
     with tf.device('/device:GPU:0'):
-        # model.save('./checkpoints/save_model.h5', True, True, 'h5')
-        export_path = os.path.join('./checkpoints', str('graph_model'))
+        test_difficults = []
+        use_07_metric = True
+        test_bboxes = []
+        test_labels = []
 
-        tf.keras.models.save_model(
-            model,
-            export_path,
-            overwrite=True,
-            include_optimizer=True,
-            save_format=None,
-            signatures=None,
-            options=None
-        )
-        # test_difficults = []
-        # use_07_metric = True
-        # test_bboxes = []
-        # test_labels = []
+        for sample in test_data:
+            label = sample['objects']['label'].numpy()
+            bbox = sample['objects']['bbox'].numpy()[:, [1, 0, 3, 2]]
+
+            is_difficult = sample['objects']['is_difficult'].numpy()
+            test_difficults.append(is_difficult)
+            test_bboxes.append(bbox)
+            test_labels.append(label)
+
+        print("Evaluating..")
+        pred_bboxes = []
+        pred_labels = []
+        pred_scores = []
+        for x, y in tqdm(validation_dataset, total=test_steps):
+            predictions = model.predict_on_batch(x)
+            #predictions = post_process(pred, target_transform, classes=CLASSES_NUM)
+            for prediction in predictions:
+                boxes, scores, labels = prediction
+                pred_bboxes.append(boxes)
+                pred_labels.append(labels.astype(int) - 1)
+                pred_scores.append(scores)
+
+        answer = eval_detection_voc(pred_bboxes=pred_bboxes,
+                                    pred_labels=pred_labels,
+                                    pred_scores=pred_scores,
+                                    gt_bboxes=test_bboxes,
+                                    gt_labels=test_labels,
+                                    gt_difficults=test_difficults,
+                                    use_07_metric=use_07_metric)
+        # print("*"*100)
+        print("AP 결과")
+        ap_dict = dict(zip(CLASSES, answer['ap']))
+        pprint(ap_dict)
+        # print("*"*100)
+        print("mAP결과:", answer['map'])
+
+        w = csv.writer(open("eval.csv", "w"))
+        w.writerow(["Class", "Average Precision"])
+        for key, val in ap_dict.items():
+            w.writerow([key, val])
+
+
+        # # model.save('./checkpoints/save_model.h5', True, True, 'h5')
+        # export_path = os.path.join('./checkpoints', str('graph_model'))
         #
-        # for sample in test_data:
-        #     label = sample['objects']['label'].numpy()
-        #     bbox = sample['objects']['bbox'].numpy()[:, [1, 0, 3, 2]]
-        #
-        #     is_difficult = sample['objects']['is_difficult'].numpy()
-        #     test_difficults.append(is_difficult)
-        #     test_bboxes.append(bbox)
-        #     test_labels.append(label)
-        #
-        # print("Evaluating..")
-        # pred_bboxes = []
-        # pred_labels = []
-        # pred_scores = []
-        # for x, y in tqdm(validation_dataset, total=test_steps):
-        #     predictions = model.predict_on_batch(x)
-        #     #predictions = post_process(pred, target_transform, classes=CLASSES_NUM)
-        #     for prediction in predictions:
-        #         boxes, scores, labels = prediction
-        #         pred_bboxes.append(boxes)
-        #         pred_labels.append(labels.astype(int) - 1)
-        #         pred_scores.append(scores)
-        #
-        # answer = eval_detection_voc(pred_bboxes=pred_bboxes,
-        #                             pred_labels=pred_labels,
-        #                             pred_scores=pred_scores,
-        #                             gt_bboxes=test_bboxes,
-        #                             gt_labels=test_labels,
-        #                             gt_difficults=test_difficults,
-        #                             use_07_metric=use_07_metric)
-        # # print("*"*100)
-        # print("AP 결과")
-        # ap_dict = dict(zip(CLASSES, answer['ap']))
-        # pprint(ap_dict)
-        # # print("*"*100)
-        # print("mAP결과:", answer['map'])
-        #
-        # w = csv.writer(open("eval.csv", "w"))
-        # w.writerow(["Class", "Average Precision"])
-        # for key, val in ap_dict.items():
-        #     w.writerow([key, val])
-        #
-        #
+        # tf.keras.models.save_model(
+        #     model,
+        #     export_path,
+        #     overwrite=True,
+        #     include_optimizer=True,
+        #     save_format=None,
+        #     signatures=None,
+        #     options=None
+        # )
+
+
 
 
