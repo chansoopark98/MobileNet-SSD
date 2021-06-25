@@ -54,7 +54,7 @@ priors = create_priors_boxes(specs, IMAGE_SIZE[0])
 target_transform = MatchingPriors(priors, center_variance, size_variance, iou_threshold)
 
 print("백본 EfficientNet{0} .".format(MODEL_NAME))
-model = model_build(TRAIN_MODE, MODEL_NAME, image_size=IMAGE_SIZE, pretrained=False)
+model = model_build(TRAIN_MODE, train=True, image_size=IMAGE_SIZE)
 model.summary()
 print("모델로드")
 model.load_weights(checkpoint_filepath)

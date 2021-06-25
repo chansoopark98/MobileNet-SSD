@@ -6,13 +6,13 @@ from utils.model_post_processing import post_process, post_process_predict
 MOMENTUM = 0.999
 EPSILON = 1e-3
 
-def create_vgg16(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], trainable=True):
+def build_backbone(IMAGE_SIZE=[300, 300]):
     weights = "imagenet"
     base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
     return base
 
-def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], backbone_trainable=True):
-    base = create_vgg16(base_model_name, pretrained, IMAGE_SIZE, trainable=backbone_trainable)
+def csnet_extra_model(num_classes=21, IMAGE_SIZE=[300, 300]):
+    base = build_backbone(IMAGE_SIZE)
     # mobilenET V2
     # x2 = base.get_layer('block_6_expand_relu').output # 38x38 @ 192
     # x3 = base.get_layer('block_13_expand_relu').output # 19x19 @ 576
@@ -57,7 +57,6 @@ def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], b
     mbox_loc = []
 
     num_priors = [4, 6, 6, 6, 4, 4]
-    num_classes = 21
 
     for i, layer in enumerate(features):
         x = layer
@@ -82,8 +81,8 @@ def csnet_extra_model(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], b
     return base.input, predictions
 
 
-def csnet_extra_model_post(base_model_name, pretrained=True, IMAGE_SIZE=[300, 300], target_transform=None, backbone_trainable=True):
-    base = create_vgg16(base_model_name, pretrained, IMAGE_SIZE, trainable=backbone_trainable)
+def csnet_extra_model_post(num_classes=21, IMAGE_SIZE=[300, 300], target_transform=None):
+    base = build_backbone(IMAGE_SIZE)
 
     x2 = base.get_layer('block_6_expand_relu').output # 38x38 @ 192
     x3 = base.get_layer('block_13_expand_relu').output # 19x19 @ 576
@@ -117,7 +116,7 @@ def csnet_extra_model_post(base_model_name, pretrained=True, IMAGE_SIZE=[300, 30
     mbox_loc = []
 
     num_priors = [4, 6, 6, 6, 4, 4]
-    num_classes = 21
+
 
     for i, layer in enumerate(features):
         x = layer

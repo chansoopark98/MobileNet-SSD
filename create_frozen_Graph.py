@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/voc_0621.h5')
 args = parser.parse_args()
 
-IMAGE_SIZE = [300, 300]
+IMAGE_SIZE = INPUT_SIZE
 TRAIN_MODE = 'voc'
 MODEL_NAME = 'B0'
 CHECKPOINT_DIR = args.checkpoint_dir

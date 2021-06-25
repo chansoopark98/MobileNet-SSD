@@ -28,7 +28,7 @@ parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 �
 parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 dataset 설정 coco or voc", default='voc')
 parser.add_argument("--use_weightDecay",  type=bool,  help="weightDecay 사용 유무", default=True)
 
-MODEL_INPUT_SIZE = 300
+
 
 args = parser.parse_args()
 WEIGHT_DECAY = args.weight_decay
@@ -41,7 +41,7 @@ CHECKPOINT_DIR = args.checkpoint_dir
 TENSORBOARD_DIR = args.tensorboard_dir
 MODEL_NAME = args.backbone_model
 TRAIN_MODE = args.train_dataset
-IMAGE_SIZE = [MODEL_INPUT_SIZE, MODEL_INPUT_SIZE]
+IMAGE_SIZE = INPUT_SIZE
 USE_WEIGHT_DECAY = args.use_weightDecay
 
 os.makedirs(DATASET_DIR, exist_ok=True)
@@ -89,7 +89,7 @@ mirrored_strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribut
 print("Number of devices: {}".format(mirrored_strategy.num_replicas_in_sync))
 
 with mirrored_strategy.scope(): # if use single gpu > with tf.device('/device:GPU:0'):
-    model = model_build(TRAIN_MODE, MODEL_NAME, train=True, image_size=IMAGE_SIZE, backbone_trainable=True)
+    model = model_build(TRAIN_MODE, train=True, image_size=IMAGE_SIZE)
 
     model.compile(
         optimizer=optimizer,

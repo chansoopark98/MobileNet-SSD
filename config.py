@@ -1,5 +1,6 @@
 from utils.priors import *
 
+INPUT_SIZE = [300, 300]
 iou_threshold = 0.5 # 0.5
 center_variance = 0.1 # 0.1
 size_variance = 0.2 # 0.2
