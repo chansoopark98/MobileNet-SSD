@@ -19,7 +19,7 @@ priors = create_priors_boxes(specs, IMAGE_SIZE[0])
 target_transform = MatchingPriors(priors, center_variance, size_variance, iou_threshold)
 
 
-model = model_build(TRAIN_MODE, MODEL_NAME, train=False, target_transform=target_transform, image_size=IMAGE_SIZE, pretrained=False)
+model = model_build(TRAIN_MODE, train=False, image_size=IMAGE_SIZE)
 
 print("모델 가중치 로드...")
 model.load_weights(CHECKPOINT_DIR)
