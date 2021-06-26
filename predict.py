@@ -17,7 +17,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=32)
 parser.add_argument("--dataset_dir",    type=str,   help="데이터셋 다운로드 디렉토리 설정", default='./datasets/')
 parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/voc_0527.h5')
-# parser.add_argument("--input_dir", type=str,   help="테스트 이미지 디렉토리 설정", default='./datasets/test/VOCdevkit/VOC2007/JPEGImages/')
 parser.add_argument("--input_dir", type=str,   help="테스트 이미지 디렉토리 설정", default='./inputs/')
 parser.add_argument("--output_dir", type=str,   help="테스트 결과 이미지 디렉토리 설정", default='./outputs/')
 parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 설정", default='B0')
@@ -42,13 +41,8 @@ else:
     CLASSES_NUM = 81
     CLASSES_LABEL = COCO_CLASSES
 
-
-
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-
 specs = set_priorBox()
-
 
 priors = create_priors_boxes(specs, IMAGE_SIZE[0])
 target_transform = MatchingPriors(priors, center_variance, size_variance, iou_threshold)
@@ -67,7 +61,6 @@ dataset = dataset.batch(BATCH_SIZE)
 
 x, y = 0, BATCH_SIZE
 test_steps = 4952 // BATCH_SIZE + 1
-
 
 
 def draw_bounding(img , bboxes, labels, img_size):

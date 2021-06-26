@@ -49,7 +49,7 @@ def csnet_extra_model(normalizations, num_priors, num_classes=21, IMAGE_SIZE=[30
     # x3 = base.get_layer('block4_conv3').output # 19x19 @ 576
     # x4 = base.get_layer('block5_conv3').output # 10x10 @ 320
 
-    base_channel = 64
+    base_channel = 128
 
     x2 = base.get_layer('block_5_add').output # 38x38 @ 192
     x3 = base.get_layer('block_12_add').output # 19x19 @ 576

@@ -1,13 +1,12 @@
 import tensorflow_datasets as tfds
-from utils.priors import *
+# from utils.priors import *
 from model.model_builder import model_build
 from preprocessing import prepare_dataset
 from preprocessing import coco_eval_dataset
 from utils.model_post_processing import post_process
 from utils.model_evaluation import eval_detection_voc
-from tensorflow.keras.utils import plot_model
 from config import *
-#from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tqdm import tqdm
 from pprint import pprint
 import csv
@@ -17,17 +16,16 @@ import os
 
 tf.keras.backend.clear_session()
 
-# policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
-# mixed_precision.set_policy(policy)
-
+policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
+mixed_precision.set_policy(policy)
 
 parser = argparse.ArgumentParser()
 
 
 parser.add_argument("--dataset_dir",    type=str,   help="데이터셋 다운로드 디렉토리 설정", default='./datasets/')
-parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=1)
+parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=64)
 # parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/0410_81.9%_b1_/0410.h5')
-parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/voc_0621.h5')
+parser.add_argument("--checkpoint_dir", type=str,   help="모델 저장 디렉토리 설정", default='./checkpoints/voc_0627.h5')
 parser.add_argument("--backbone_model", type=str,   help="EfficientNet 모델 설정", default='B0')
 parser.add_argument("--train_dataset",  type=str,   help="학습에 사용할 dataset 설정 coco or voc", default='voc')
 parser.add_argument("--eval_testdev",  type=str,   help="COCO minival(val dataset) 평가", default=True)
@@ -90,8 +88,8 @@ else:
 
 
 print("백본 EfficientNet{0} .".format(MODEL_NAME))
-model = model_build(TRAIN_MODE, MODEL_NAME, train=False, target_transform=target_transform, image_size=IMAGE_SIZE, pretrained=False)
 
+model = model_build(TRAIN_MODE, train=True, image_size=IMAGE_SIZE)
 print("모델 가중치 로드...")
 model.load_weights(CHECKPOINT_DIR)
 model.summary()
@@ -110,16 +108,6 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
 
-def coco80_to_coco91_class():  # converts 80-index (val2014) to 91-index (paper)
-    # https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
-    # a = np.loadtxt('data/coco.names', dtype='str', delimiter='\n')
-    # b = np.loadtxt('data/coco_paper.names', dtype='str', delimiter='\n')
-    # x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
-    # x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
-    x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34,
-         35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
-         64, 65, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90]
-    return x
 
 if TRAIN_MODE == 'coco':
     img_id = []
@@ -206,8 +194,8 @@ else:
         pred_labels = []
         pred_scores = []
         for x, y in tqdm(validation_dataset, total=test_steps):
-            predictions = model.predict_on_batch(x)
-            #predictions = post_process(pred, target_transform, classes=CLASSES_NUM)
+            pred = model.predict_on_batch(x)
+            predictions = post_process(pred, target_transform, classes=CLASSES_NUM)
             for prediction in predictions:
                 boxes, scores, labels = prediction
                 pred_bboxes.append(boxes)
