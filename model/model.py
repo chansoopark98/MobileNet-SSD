@@ -36,6 +36,7 @@ class Normalize(Layer):
 def build_backbone(IMAGE_SIZE=[300, 300]):
     weights = "imagenet"
     base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
+    base.summary()
     return base
 
 def csnet_extra_model(normalizations, num_priors, num_classes=21, IMAGE_SIZE=[300, 300], convert_tfjs=False, target_transform=None):
