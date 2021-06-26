@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Concatenat
 from tensorflow.keras.activations import swish
 from tensorflow.keras.applications import mobilenet_v2, vgg16, mobilenet
 from utils.model_post_processing import post_process, post_process_predict
-from tensorflow.keras import initializers
+from tensorflow.keras import initializers, Input
 
 # Import for L2 Normalize
 from tensorflow.keras.layers import Layer
@@ -35,7 +35,8 @@ class Normalize(Layer):
 
 def build_backbone(IMAGE_SIZE=[300, 300]):
     weights = "imagenet"
-    base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3])
+    input_tensor = Input(shape=(IMAGE_SIZE[0],IMAGE_SIZE[1],3))
+    base = mobilenet_v2.MobileNetV2(weights=weights, include_top=False, input_shape=[*IMAGE_SIZE, 3], input_tensor=input_tensor)
     base.summary()
     return base
 

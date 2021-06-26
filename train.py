@@ -15,8 +15,8 @@ policy = mixed_precision.Policy('mixed_float16', loss_scale=1024)
 mixed_precision.set_policy(policy)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=1)
-parser.add_argument("--epoch",          type=int,   help="에폭 설정", default=200)
+parser.add_argument("--batch_size",     type=int,   help="배치 사이즈값 설정", default=128)
+parser.add_argument("--epoch",          type=int,   help="에폭 설정", default=300)
 parser.add_argument("--lr",             type=float, help="Learning rate 설정", default=0.001)
 parser.add_argument("--weight_decay",   type=float, help="Weight Decay 설정", default=0.0005)
 parser.add_argument("--model_name",     type=str,   help="저장될 모델 이름",
@@ -103,7 +103,7 @@ with mirrored_strategy.scope(): # if use single gpu > with tf.device('/device:GP
             validation_data=dataset_config.validation_dataset,
             steps_per_epoch=steps_per_epoch,
             validation_steps=validation_steps,
-            epochs=1,
+            epochs=EPOCHS,
             callbacks=callback)
 
     model.save('./checkpoints/save_model.h5', True, True, 'h5')
