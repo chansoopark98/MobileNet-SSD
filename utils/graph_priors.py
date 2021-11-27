@@ -4,7 +4,7 @@ import itertools
 import collections
 from utils.graph_misc import *
 
-"""CSNET Prior Box 생성 (= Default box)
+"""Box 생성 (= Default box)
 중심, 높이 및 너비값 반환
  사전의 중심, 높이 및 너비를 반환합니다. 값은 이미지 크기에 상대적입니다.
  Args :
